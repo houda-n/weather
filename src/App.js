@@ -1,25 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import WelcomeScreen from './screens/WelcomeScreen';
+import SearchScreen from './screens/SearchScreen';
+
+const Stack = createStackNavigator();
 
 const App = () => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Welcome to WeatherGuru!</Text>
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="Search" component={SearchScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-  },
-  text: {
-    fontSize: 20,
-    color: '#333',
-  },
-});
 
 export default App;
