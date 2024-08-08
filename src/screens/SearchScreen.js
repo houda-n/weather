@@ -83,19 +83,17 @@ const SearchScreen = () => {
       }
 
       let favorites = await AsyncStorage.getItem('favorites');
-      favorites = favorites ? JSON.parse(favorites) : {};
+      favorites = favorites ? JSON.parse(favorites) : [];
 
-      if (favorites[city]) {
+      if (favorites.includes(city)) {
         Alert.alert('Erreur', 'Cette ville est déjà dans les favoris');
         return;
       }
 
-      favorites[city] = {
-        city,
-        weatherData,
-      };
+      favorites.push(city);
 
       await AsyncStorage.setItem('favorites', JSON.stringify(favorites));
+      console.log('Favorites après ajout:', favorites); // Ajouter ce log
       Alert.alert('Succès', 'Ville ajoutée aux favoris');
     } catch (err) {
       console.error(err);
