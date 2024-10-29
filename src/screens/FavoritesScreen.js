@@ -10,21 +10,25 @@ const FavoritesScreen = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [error, setError] = useState(null);
 
+
+  // effet pour charger les favoris lors de la première ouverture du composant
   useEffect(() => {
     const loadFavorites = async () => {
       try {
         const storedFavorites = await AsyncStorage.getItem('favorites');
         if (storedFavorites) {
-          setFavorites(JSON.parse(storedFavorites));
+          setFavorites(JSON.parse(storedFavorites));  // charge les favories depuis AsyncStorage
         }
       } catch (error) {
         console.error(error);
       }
     };
 
-    loadFavorites();
+    loadFavorites();  // appel de la fonction pour charger les favoris
   }, []);
 
+
+  // Fonction pour gérer le changement de texte dans le champ d'ajout de ville
   const handleCityChange = async (text) => {
     setCity(text);
     if (text.length > 2) {
@@ -46,14 +50,19 @@ const FavoritesScreen = () => {
     }
   };
 
+
+  // Fct pour gérer la sélection d'une suggestion de ville
   const handleSuggestionPress = (suggestion) => {
     setCity(suggestion.display_name);
     setSuggestions([]);
   };
 
+
+  // Fct pour ajouter une ville aux favoris
   const addFavorite = async () => {
     if (city) {
       try {
+        // Envoie une requête à l'API Nominatim pour vérifier si la ville existe
         const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
           params: {
             q: city,
@@ -78,6 +87,9 @@ const FavoritesScreen = () => {
     }
   };
 
+
+
+  // Fonction pour supprimer une ville des favoris
   const removeFavorite = async (cityToRemove) => {
     try {
       const newFavorites = favorites.filter((item) => item !== cityToRemove);

@@ -4,6 +4,7 @@ import { TextInput, Button, Card, Title, Text, Provider as PaperProvider, List }
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+
 const SearchScreen = () => {
   const [city, setCity] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -21,6 +22,9 @@ const SearchScreen = () => {
             addressdetails: 1,
             limit: 5,
           },
+          headers: {
+            'User-Agent': 'WeatherGuruApp/1.0 (contact: elbaznourelhouda0@gmail.com)',
+          },
         });
         setSuggestions(response.data);
       } catch (err) {
@@ -31,12 +35,17 @@ const SearchScreen = () => {
     }
   };
 
+
   const handleSearch = async () => {
     try {
+      // Requête à l'API Nominatim pour obtenir les coordonnées de la ville
       const geoResponse = await axios.get(`https://nominatim.openstreetmap.org/search`, {
         params: {
           q: city,
           format: 'json',
+        },
+        headers: {
+          'User-Agent': 'WeatherGuruApp/1.0 (contact: your_email@example.com)',
         },
       });
 
@@ -48,6 +57,15 @@ const SearchScreen = () => {
 
       const { lat, lon } = geoResponse.data[0];
 
+      console.log("Coordonnées obtenues:", { lat, lon }); // Ajoutez ce log pour vérifier les coordonnées
+
+      // Vérifier les valeurs lat et lon avant de procéder à l'appel de l'API Open-Meteo
+      if (!lat || !lon) {
+        setError("Coordonnées invalides obtenues");
+        return;
+      }
+
+      // Requête à l'API Open-Meteo pour obtenir les données météo basées sur les coordonnées
       const weatherResponse = await axios.get(`https://api.open-meteo.com/v1/forecast`, {
         params: {
           latitude: lat,
@@ -60,15 +78,19 @@ const SearchScreen = () => {
       });
 
       const weather = weatherResponse.data;
+      console.log("Données météo obtenues:", weather); // Ajoutez ce log pour vérifier la réponse de l'API
 
       setWeatherData(weather);
       setError(null);
       setSuggestions([]);
     } catch (err) {
+      console.error("Erreur lors de la récupération des données météorologiques:", err);
       setError('Erreur lors de la récupération des données météorologiques');
       setWeatherData(null);
     }
   };
+
+
 
   const handleSuggestionPress = (suggestion) => {
     setCity(suggestion.display_name);

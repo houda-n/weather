@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, PermissionsAndroid, Platform, Alert } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { Button, Text, Card, Title, Provider as PaperProvider } from 'react-native-paper';
-import axios from 'axios';
+import axios from 'axios'; //bib requêtes HTTP
 
 const WelcomeScreen = ({ navigation }) => {
   const [location, setLocation] = useState(null);
@@ -10,6 +10,7 @@ const WelcomeScreen = ({ navigation }) => {
   const [error, setError] = useState(null);
   const [cityName, setCityName] = useState('');
 
+  //demande de permission
   useEffect(() => {
     const requestLocationPermission = async () => {
       if (Platform.OS === 'android') {
@@ -36,12 +37,14 @@ const WelcomeScreen = ({ navigation }) => {
     requestLocationPermission();
   }, []);
 
+
+  //obtenir la localisation actuelle de l'utilisateur
   const getCurrentLocation = () => {
     Geolocation.getCurrentPosition(
       (position) => {
         console.log("Position obtenue:", position.coords);
         Alert.alert("Position obtenue", `Lat: ${position.coords.latitude}, Lon: ${position.coords.longitude}`);
-        setLocation(position.coords);
+        setLocation(position.coords);  //mise à jour
         fetchWeather(position.coords.latitude, position.coords.longitude);
       },
       (error) => {
@@ -52,7 +55,9 @@ const WelcomeScreen = ({ navigation }) => {
     );
   };
 
-  const fetchWeather = async (latitude, longitude) => {
+
+  //recuperer les données météo en fonction des coordonnées
+  const fetchWeather = async (latitude, longitude) => {  //envoyer une requête à l'API open-meteo pour obtenir les données meteoro
     try {
       console.log("Récupération des données météo pour:", latitude, longitude);
       const response = await axios.get('https://api.open-meteo.com/v1/forecast', {
@@ -66,7 +71,7 @@ const WelcomeScreen = ({ navigation }) => {
         },
       });
       console.log("Données météo obtenues:", response.data);
-      setWeatherData(response.data);
+      setWeatherData(response.data);  //mise à jour
       fetchCityName(latitude, longitude);
     } catch (err) {
       console.error("Erreur lors de la récupération des données météorologiques:", err);
@@ -74,13 +79,18 @@ const WelcomeScreen = ({ navigation }) => {
     }
   };
 
+
+  //recuperer le nom de la ville en fonction des coordonnées
   const fetchCityName = async (latitude, longitude) => {
     try {
-      const response = await axios.get(`https://nominatim.openstreetmap.org/reverse`, {
+      const response = await axios.get('https://nominatim.openstreetmap.org/reverse', {
         params: {
           lat: latitude,
           lon: longitude,
           format: 'json',
+        },
+        headers: {
+          'User-Agent': 'WeatherGuruApp/1.0 (contact: elbaznourelhouda0@gmail.com)',
         },
       });
       console.log("Nom de la ville obtenu:", response.data.address);
