@@ -1,0 +1,35 @@
+stages:
+  - install
+  - test
+
+# Étape d'installation des dépendances
+install:
+  image: node:18 # Utilise l'image officielle Node.js
+  stage: install
+  script:
+    - echo "Installation des dépendances..."
+    - npm install
+  artifacts:
+    paths:
+      - node_modules/ # Conserve les dépendances pour les étapes suivantes
+
+# Étape de tests
+test:
+  image: node:18
+  stage: test
+  services:
+    - postgres:latest # Service PostgreSQL pour la base de données
+  variables:
+    POSTGRES_DB: weatherguru_db
+    POSTGRES_USER: user
+    POSTGRES_PASSWORD: password
+    DATABASE_HOST: postgres
+    DATABASE_NAME: weatherguru_db
+    DATABASE_USER: user
+    DATABASE_PASSWORD: password
+    JWT_SECRET: votre_clé_secrète # Clé JWT pour les tests
+  script:
+    - echo "Démarrage des tests unitaires..."
+    - npm test # Exécute les tests définis dans le projet
+  dependencies:
+    - install

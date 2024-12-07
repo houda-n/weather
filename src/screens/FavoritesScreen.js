@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, FlatList, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TextInput, Button, Text, List, IconButton, Provider as PaperProvider } from 'react-native-paper';
 import axios from 'axios';
@@ -9,65 +9,53 @@ const FavoritesScreen = () => {
   const [favorites, setFavorites] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-
-  // effet pour charger les favoris lors de la première ouverture du composant
   useEffect(() => {
     const loadFavorites = async () => {
       try {
         const storedFavorites = await AsyncStorage.getItem('favorites');
         if (storedFavorites) {
-          setFavorites(JSON.parse(storedFavorites));  // charge les favories depuis AsyncStorage
+          setFavorites(JSON.parse(storedFavorites));
         }
       } catch (error) {
         console.error(error);
       }
     };
-
-    loadFavorites();  // appel de la fonction pour charger les favoris
+    loadFavorites();
   }, []);
 
-
-  // Fonction pour gérer le changement de texte dans le champ d'ajout de ville
   const handleCityChange = async (text) => {
     setCity(text);
     if (text.length > 2) {
       try {
+        setLoading(true);
         const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
-          params: {
-            q: text,
-            format: 'json',
-            addressdetails: 1,
-            limit: 5,
-          },
+          params: { q: text, format: 'json', addressdetails: 1, limit: 5 },
+          headers: { 'User-Agent': 'WeatherGuruApp/1.0 (contact: your_email@example.com)' },
         });
         setSuggestions(response.data);
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     } else {
       setSuggestions([]);
     }
   };
 
-
-  // Fct pour gérer la sélection d'une suggestion de ville
   const handleSuggestionPress = (suggestion) => {
     setCity(suggestion.display_name);
     setSuggestions([]);
   };
 
-
-  // Fct pour ajouter une ville aux favoris
   const addFavorite = async () => {
     if (city) {
       try {
-        // Envoie une requête à l'API Nominatim pour vérifier si la ville existe
         const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
-          params: {
-            q: city,
-            format: 'json',
-          },
+          params: { q: city, format: 'json' },
+          headers: { 'User-Agent': 'WeatherGuruApp/1.0 (contact: your_email@example.com)' },
         });
 
         if (response.data.length === 0) {
@@ -81,15 +69,11 @@ const FavoritesScreen = () => {
         setCity('');
         setError(null);
       } catch (error) {
-        console.error(error);
         setError('Erreur lors de l\'ajout de la ville aux favoris');
       }
     }
   };
 
-
-
-  // Fonction pour supprimer une ville des favoris
   const removeFavorite = async (cityToRemove) => {
     try {
       const newFavorites = favorites.filter((item) => item !== cityToRemove);
@@ -103,7 +87,7 @@ const FavoritesScreen = () => {
   return (
     <PaperProvider>
       <View style={styles.container}>
-        <Text style={styles.text} variant="headlineMedium">Favorites</Text>
+        <Text style={styles.text}>Favorites</Text>
         <TextInput
           mode="outlined"
           label="Add City"
@@ -111,21 +95,27 @@ const FavoritesScreen = () => {
           onChangeText={handleCityChange}
           style={styles.input}
         />
-        {suggestions.length > 0 && (
-          <ScrollView style={styles.suggestionsContainer}>
-            {suggestions.map((suggestion) => (
-              <List.Item
-                key={suggestion.place_id}
-                title={suggestion.display_name}
-                onPress={() => handleSuggestionPress(suggestion)}
-              />
-            ))}
-          </ScrollView>
+        {loading ? (
+          <ActivityIndicator size="large" color="#6200ee" />
+        ) : (
+          <>
+            {suggestions.length > 0 && (
+              <ScrollView style={styles.suggestionsContainer}>
+                {suggestions.map((suggestion) => (
+                  <List.Item
+                    key={suggestion.place_id}
+                    title={suggestion.display_name}
+                    onPress={() => handleSuggestionPress(suggestion)}
+                  />
+                ))}
+              </ScrollView>
+            )}
+            {error && <Text style={styles.error}>{error}</Text>}
+            <Button mode="contained" onPress={addFavorite} style={styles.button}>
+              Add to Favorites
+            </Button>
+          </>
         )}
-        {error && <Text style={styles.error}>{error}</Text>}
-        <Button mode="contained" onPress={addFavorite} style={styles.button}>
-          Add to Favorites
-        </Button>
         <FlatList
           data={favorites}
           keyExtractor={(item) => item}
