@@ -8,4 +8,5 @@ module.exports = {
     host: process.env.DB_HOST,
     dialect: 'postgres',
   },
+  openAiApiKey: process.env.OPENAI_API_KEY,
 };

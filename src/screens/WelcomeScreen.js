@@ -15,6 +15,7 @@ import axios from 'axios';
 import WeatherCard from './WeatherCard';
 import WeatherChart from './WeatherChart';
 
+
 const WelcomeScreen = ({ navigation }) => {
   const [location, setLocation] = useState(null);
   const [weatherData, setWeatherData] = useState(null);
@@ -131,6 +132,19 @@ const WelcomeScreen = ({ navigation }) => {
         <View style={styles.logoutContainer}>
            <Button mode="text" onPress={handleLogout} labelStyle={{ color: '#d9534f' }}>
               Déconnexion
+           </Button>
+           <Button
+             mode="contained"
+             onPress={() =>
+               navigation.navigate('Suggestions', {
+                 temperature: weatherData.current_weather.temperature,
+                 condition: weatherData.current_weather.weather_code,
+                 userPreferences: 'sportif',
+               })
+             }
+             style={styles.button}
+           >
+             Voir les suggestions vestimentaires
            </Button>
         </View>
         <View style={styles.container}>

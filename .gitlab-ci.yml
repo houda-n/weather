@@ -30,6 +30,8 @@ test:
     JWT_SECRET: votre_clé_secrète # Clé JWT pour les tests
   script:
     - echo "Démarrage des tests unitaires..."
+    - cd backend
+    - npm install
     - npm test # Exécute les tests définis dans le projet
   dependencies:
     - install

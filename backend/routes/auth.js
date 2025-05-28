@@ -58,4 +58,42 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Route pour les suggestions
+router.post('/suggestions', async (req, res) => {
+  console.log('Requête reçue sur /suggestions:', req.body);
+  const { temperature, condition, userPreferences } = req.body;
+
+  // Construisez un prompt pour ChatGPT
+  const prompt = `
+    Je suis un assistant IA spécialisé en météo. Voici les conditions :
+    - Température actuelle : ${temperature}°C.
+    - Condition météo : ${condition}.
+    - Préférences utilisateur : ${userPreferences || 'aucune'}.
+    Propose-moi une suggestion vestimentaire adaptée et pratique, en une ou deux phrases.
+  `;
+
+  try {
+    const response = await axios.post(
+      'https://api.openai.com/v1/completions',
+      {
+        model: 'text-davinci-003',
+        prompt: prompt,
+        max_tokens: 150,
+        temperature: 0.7,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+      }
+    );
+
+    const suggestion = response.data.choices[0].text.trim();
+    res.json({ suggestion });
+  } catch (error) {
+    console.error('Erreur avec l’API OpenAI :', error.response?.data || error.message);
+    res.status(500).json({ error: 'Impossible de générer une suggestion.' });
+  }
+});
+
 module.exports = router;

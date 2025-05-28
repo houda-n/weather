@@ -83,21 +83,20 @@ android {
         versionName "1.0"
     }
 
-    // Commenter ou supprimer la section signingConfigs pour le release
-    // signingConfigs {
-    //     release {
-    //         storeFile file('my-release-key.keystore')
-    //         storePassword 'votre_mot_de_passe'
-    //         keyAlias 'my-key-alias'
-    //         keyPassword 'votre_mot_de_passe'
-    //     }
-    // }
+    signingConfigs {
+    release {
+        storeFile file('my-release-key.keystore')
+        storePassword 'Nourelhou2003'
+        keyAlias 'my-key-alias'
+        keyPassword 'Nourelhou2003'
+    }
+}
+
 
     buildTypes {
         release {
-            // Retirez la ligne ci-dessous qui configure la signature
-            // signingConfig signingConfigs.release
-            minifyEnabled false // Gardez-le sur false pour simplifier le build
+            signingConfig signingConfigs.release
+            minifyEnabled false // Gardez false pour un build plus simple
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

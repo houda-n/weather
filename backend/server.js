@@ -1,7 +1,14 @@
+require('dotenv').config();
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 const { Sequelize, DataTypes } = require('sequelize');
+const suggestionsRoutes = require('./routes/suggestions'); // Import des routes de suggestions
+
+// Initialisation d'Express
+const app = express();
+app.use(express.json()); // Middleware pour parser les JSON
 
 // Configuration de la base de données
 const sequelize = new Sequelize(process.env.DATABASE_NAME, process.env.DATABASE_USER, process.env.DATABASE_PASSWORD, {
@@ -15,8 +22,8 @@ const User = sequelize.define('User', {
   password: { type: DataTypes.STRING, allowNull: false },
 });
 
-const app = express();
-app.use(express.json());
+// Routes
+app.use('/suggestions', suggestionsRoutes); // Ajout des routes suggestions
 
 // Route d'inscription
 app.post('/signup', async (req, res) => {
@@ -47,6 +54,48 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// Route pour les suggestions
+app.post('/suggestions', async (req, res) => {
+  console.log('Requête reçue sur /suggestions:', req.body);
+
+  const { temperature = 'non spécifiée', condition = 'non spécifiée', userPreferences = 'aucune' } = req.body;
+
+  const prompt = `
+    Je suis un assistant IA spécialisé en météo. Voici les conditions :
+    - Température actuelle : ${temperature}°C.
+    - Condition météo : ${condition}.
+    - Préférences utilisateur : ${userPreferences}.
+    Propose-moi une suggestion vestimentaire adaptée et pratique, en une ou deux phrases.
+  `;
+
+  console.log('Prompt envoyé à OpenAI:', prompt);
+
+  try {
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: 'Vous êtes un assistant spécialisé en météo.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 150,
+        temperature: 0.7,
+      },
+      {
+        headers: {
+                  Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+      }
+    );
+
+    const suggestion = response.data.choices[0].message.content.trim();
+    res.json({ suggestion });
+  } catch (error) {
+    console.error('Erreur avec l’API OpenAI :', error.response?.data || error.message);
+    res.status(500).json({ error: 'Impossible de générer une suggestion.' });
+  }
+});
 
 // Synchroniser la base de données
 sequelize.sync().then(() => {
